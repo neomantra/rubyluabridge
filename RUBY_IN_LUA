@@ -1,0 +1,25 @@
+== Using Ruby in Lua
+
+==NONE OF THIS IS IMPLEMENTED
+
+==IF YOU HAVE SUGGESTIONS, TELL ME!
+
+Ruby is different in Lua in that there is a single Ruby VM, whereas there can be
+many Lua states.  This is represented in Lua as an object in the global table named 'ruby'.
+
+The first thing you need to require the RubyLuaBridge library.  With this object, you can
+run Ruby code, load Ruby libraries, and access Ruby objects.
+
+   require 'rubyluabridge'
+   print(ruby)    # => userdata: 0x219083
+
+With this +ruby+ object, you can get and set variables and invoke functions.
+
+   ruby.NilClass    --
+   ruby.a = 5       -- 
+   ruby.print       --
+
+   ruby.eval("print 'hello world'"     # => nil
+   ruby.eval("1")                      # => 1
+   ruby.eval("'test'")                 # => "test"
+

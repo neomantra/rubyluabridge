@@ -1,0 +1,146 @@
+= Using Lua in Ruby
+
+Ruby is different in Lua in that there is a single Ruby VM, whereas there can be
+many Lua states.  A Lua virtual machine is wrapped in an instance of the Lua::State class.
+You can have multiple Lua::States. 
+
+First, you need to require the RubyLuaBridge library and create a Lua::State.  With this
+instance, you can run Lua code, load Lua libraries, and access Lua objects.
+
+   require 'rubyluabridge'
+   l = Lua::State.new    # we're gonna do a lot with this guy
+
+Once you have a Lua::State, you can run Lua code using the Lua::State.eval.  This method will 
+return whatever value is returned by the passed code.  It will also raise an exception on errors.  
+
+   l.eval "print('hello world')"                  # => nil
+   l.eval "function give_me_one() return 1 end"   # => nil
+   l.eval("return give_me_one()")                 # => 1
+
+Since Lua can return multiple values, Lua::State.eval_mult will return all values in an Array.
+
+   require 'pp'
+   pp l.eval_mult("return")          # => []
+   pp l.eval_mult("return 1")        # => [1.0]
+   pp l.eval_mult("return 1, 2, 3")  # => [1.0, 2.0, 3.0]
+
+Due to the dynamic natures of Ruby and Lua, you can easily query and set Lua values in a natural way.
+You can use square brackets <tt>[key]</tt>, which is necessary if your key is not a string.  Otherwise, string
+keys can also be accessed by invoking it like a method (see example below).
+Querying from the Lua::State will access the Lua global table.
+
+   l.eval <<LUA_END
+        n = 5                 -- see how Ruby long strings
+        s = "hello"           -- make it easy to embed Lua code?
+        a = { 1, 2, 3, 4 }
+        h = { a='x', b='y', }
+   LUA_END
+   l.n       # => 5
+   l.s       # => "hello"
+   l.a       # => Lua::Table
+   l.a[1]    # => 1
+   l.h       # => Lua::Table
+   l.h['a']  # => "x"
+   l.h.a     # => "x"
+   
+Similarly, you can use this style to set Lua variables.  To make a new table, invoke _new_table_at_
+on the object, specifying where you want it.  Setting a Ruby Arrays or Hashes to a Lua variable will
+create and assign a new table with a shallow copy of the Ruby container.
+
+    l.n = 5                 # n = 5
+    l.new_table_at 't'      # t = {}
+    l.t.u = 4               # t.u = 4
+    l.t['u'] = 4            # t.u = 4
+    l.a = [1,2]             # t.a = { 1, 2 }
+    l.h = { 'a' => 'b' }    # t.h = { a = 'b' }
+
+When RubyLuaBridge has to marshal a table to Ruby, it return a Lua::Table.  The Lua::Table implements
+various iterators that take Ruby Blocks.  There are two ways of looking at a Lua table.
+The first is as a hash, where it has keys of any type mapping to values of any type.  The second is as an array,
+where it has integer keys from 1 to N, where N is the size of the array.  The <tt>each_i*</tt> methods iterate
+the table as an array, whereas the <tt>each_*</tt> methods (without the i) iterate the table as a hash.  In 
+each case you can iterate of the keys, the values, or the pair [key, value].  Lua::Table#each is aliased to
+Lua::Table#each_pair and Lua::Table#each_index is aliased to Lua::Table#each_ikey.
+
+    l.eval( "array = { 100, 200, 300, 400 }" )
+    l.array.each_ikey   { |k|   print "#{k} " }        # 1 2 3 4
+    l.array.each_ivalue { |v|   print "#{v} " }        # 100.0 200.0 300.0 400.0 
+    l.array.each_ipair  { |k,v| print "#{k},#{v} " }   # 1,100.0 2,200.0 3,300.0 4,400.0 
+
+    l.eval( "hsh = { a = 100, b = 200, [1] = 300, [5] = 400 }" )
+    l.hsh.each_key    { |k|   print "#{k} " }          # a 1.0 5.0 b 
+    l.hsh.each_value  { |v|   print "#{v} " }          # 100.0 300.0 400.0 200.0
+    l.hsh.each_pair   { |k,v| print "#{k},#{v} " }     # a,100.0 1.0,300.0 5.0,400.0 b,200.0 
+    l.hsh.each_ikey   { |k|   print "#{k} " }          # 1
+    l.hsh.each_ivalue { |v|   print "#{v} " }          # 300.0
+    l.hsh.each_ipair  { |k,v| print "#{k},#{v} " }     # 1,300.0
+
+You can also extract a Ruby Hash or Array that is a shallow-copy of the table.
+
+    l.eval "a = {1,2} ; h = { a=3, b=4 }"
+    l.a.to_array     # => [1, 2]
+    l.a.to_hash      # => { 1 => 1, 2 => 2 }
+    l.h.to_array     # => []
+    l.a.to_hash      # => { 'a' => 3, 'b' => 4 }
+
+Note that by default, all the Lua standard libraries are loaded into the Lua::State.  You can
+control this by passing :loadlibs option to Lua::State.new, or invoking Lua::State.__loadlibs:
+
+    l = Lua::State.new( :loadlibs => :none ) 
+    l = Lua::State.new( :loadlibs => [:base, :io, :debug] ) 
+    l.__loadlibs( :package )
+    l.__loadlibs( [:string, :math] )
+    
+
+<b>Note that Ruby Array's start with index 0, whereas Lua array's start with index 1.</b>
+
+<b>Note for advanced Lua users:</b> all of these accesses use the Lua object's metamethods.
+
+RubyLuaBridge has a comprehensive test suite (LuaInRuby_Test).  Examine it to see various simple uses of
+this library.
+
+== Language Mismatchs
+
+There are two sticky issues when trying to express ideas with RubyLuaBridge.  
+
+Lua uses a colon <tt>:</tt> syntax to define Lua's "methods", functions that have an implicit extra
+parameter self.  Ruby methods always have this self parameter implicitly.  RubyLuaBridge's will only
+pass the self parameter to a Lua function invocation if you end the method name with bang <tt>!</tt>.
+The bang was chosen because it vaguely resembles a colon <tt>: !</tt>.  Note that in Lua, the colon
+is before the method name, but in RubyLuaBridge, the bang is after (but attached to) the method name.
+
+Another issue is that it there is an ambiguity whether an index is meant to be a property or a function call.
+This happens when there are no arguments, since Ruby's parentheses are optional.  RubyLuaBridge always returns
+the object when there are no arguments, unless it's name is suffixed with an underscore <tt>_</tt>.  With the
+underscore, RubyLuaBridge will invoke the object like a function.  The underscore can be used with multiple
+arguments as well. Awkwardly, it will do this parameter-less behavior even when paretheses are present,
+so don't do that!
+
+The one exception to the no argument behavior is if the object is a Lua function, in which case it is
+dispatched.  To get a reference to a function, rather than invoking it, use [].
+
+Examples of this notation, with their semantics shown in the more explicit Lua code:
+
+    l.eval <<END_OF_LUA
+        obj = {
+            foo = function (...)
+            end,
+            bar = "a"
+        }
+    END_OF_LUA
+
+    l.obj.foo       # return obj.foo()
+    l.obj.foo()     # return obj.foo()
+    l.obj.foo_      # return obj.foo()
+    l.obj.foo 2     # return obj.foo(2)
+    l.obj.foo_ 2    # return obj.foo(2)
+    l.obj.foo!      # return obj:foo(obj)
+    l.obj.foo! 2    # return obj:foo(obj, 2)
+    l.obj['foo']    # return obj.foo
+
+    l.obj.bar       # return obj.bar
+    l.obj.bar()     # return obj.bar  -- yuck!
+    l.obj.bar_      # error("object not callable")
+    l.obj.bar!      # error("object not callable")
+    l.obj.bar(2)    # error("object not callable")
+    l.obj['bar']    # return obj.bar

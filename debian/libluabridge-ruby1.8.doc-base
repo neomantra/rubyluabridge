@@ -1,0 +1,11 @@
+Document: libluabridge-ruby1.8
+Title: RubyLuaBridge Manual
+Author: Evan Wies <evan@neomantra.net>
+Abstract: This manual describes how to use 
+ RubyLuaBridge to be able to access Ruby code
+ from Lua and vice versa.
+Section: Programming/Ruby
+
+Format: HTML
+Index: /usr/share/doc/libluabridge-ruby1.8/html/index.html
+Files: /usr/share/doc/libluabridge-ruby1.8/html/*.html

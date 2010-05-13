@@ -1,0 +1,129 @@
+= RubyLuaBridge - a seamless bridge between Ruby and Lua
+
+RubyLuaBridge lets you access Lua from Ruby.  Eventually, support for accessing Ruby from Lua will be added.
+This documentation assumes basic knowledge of Ruby[http://www.ruby-lang.org] and Lua[http://www.lua.org].
+
+Relevant web pages:
+* {RubyLuaBridge Homepage}[http://rubyluabridge.rubyforge.org/]
+* {RubyForge Project}[http://rubyforge.org/projects/rubyluabridge/]
+
+== Installation
+
+RubyLuaBridge is a C extension that uses the actual Lua C library.  It currently targets Lua 5.1 and Ruby 1.8.  You must run:
+
+   % ruby extconf.rb --with-lua-include=/path/to/lua/include --with-lualib=lualibname
+   % make
+   % sudo make install
+ 
+There are extconf helpers for various platforms.  Run these instead of the 'ruby extconf.rb'.  Included are:
+* build/extconf_osx.sh
+* build/extconf_ubuntu.sh
+
+== Basic Usage
+
+Read about using {Lua in Ruby}[link:files/LUA_IN_RUBY.html].
+
+NOT IMPLEMENTED YET, SUGGESTIONS ARE WELCOME.  Read about using {Ruby in Lua}[link:files/RUBY_IN_LUA.html].
+
+
+== Design Philosophy
+
+* simplest marshalling possible
+* simplest API possible
+* do more complicated things in Lua itself, rather than exposing them!
+  For example, the coroutine library is not explicitly exposed because
+  it can be handled all through eval and indexing:   <tt>l.coroutine.create(f)</tt>
+
+
+== Ruby to Lua Type Mapping
+
+*Ruby*:: *Lua*
+nil::    nil
+None::   nil
+True::   true
+False::  false
+Fixnum:: number
+Bignum:: number
+Float::  number
+String:: string
+Symbol:: string
+Hash::   new Lua::Table clone
+Array::  new Lua::Table clone
+everything else::  lightuserdata
+
+
+== Lua to Ruby Type Mapping
+
+*Lua*:: *Ruby*
+none:: nil
+nil:: nil
+true:: True
+false:: False
+number:: Float
+string:: String
+table:: Lua::Table
+lightuserdata:: Lua::RefObject
+function:: Lua::RefObject
+userdata:: Lua::RefObject
+thread:: Lua::RefObject
+
+
+== TODO
+
+* package as gem
+* stack trace in error callback
+* how to get some external lua_State there?
+* how to deal with .clone and .dup?
+* accessing Ruby from Lua
+
+== Credits
+
+The following persons have contributed to RubyLuaBridge:
+* Evan Wies (evan a neomantra d net)
+
+RubyLuaBridge is inspired by, but not derived from:
+* Lunatic Python [http://labix.org/lunatic-python]
+* ruby-lua [http://raa.ruby-lang.org/project/ruby-lua]
+
+
+== License
+
+Licensed under the BSD License.  It is free software, and may be
+redistributed under the terms specified in the accompanying LICENSE file, as follows:
+
+Copyright (c) 2007, Evan Wies.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+* Neither the name of the neomantra nor the names of its contributors may
+  be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Evan Wies ``AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Evan Wies BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+== Support
+
+* {RubyLuaBridge Homepage}[http://rubyluabridge.rubyforge.org/]
+* {RubyForge Project}[http://rubyforge.org/projects/rubyluabridge/]
+
+Download the latest sources from there.  Please use the mailing list and issue tracking features as well.
+
+I am particularly interested in problems you may have on various systems.  I have only tested it in Ubuntu Dapper and MacOSX.

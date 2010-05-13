@@ -1,0 +1,5 @@
+rubyluabridge (0.6.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #462033)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 14 Feb 2008 21:36:41 -0500
