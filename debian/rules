@@ -32,9 +32,10 @@ install: build
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-
-	# Add here commands to install the package into debian/rubyluabridge.
-	#$(MAKE) DESTDIR=$(CURDIR)/debian/rubyluabridge install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/rubyluabridge install
+	mkdir -p $(CURDIR)/debian/rubyluabridge/usr/lib/ruby/1.8/
+	mv $(CURDIR)/debian/rubyluabridge/usr/local/lib/site_ruby/1.8/* $(CURDIR)/debian/rubyluabridge/usr/lib/ruby/1.8/
+	rm -rf $(CURDIR)/debian/rubyluabridge/usr/local
 
 
 # Build architecture-independent files here.
@@ -48,7 +49,7 @@ binary-arch: build install
 	dh_installchangelogs 
 	dh_installdocs
 	dh_installexamples
-	dh_install
+	dh_install --sourcedir=$(CURDIR)/debian/rubyluabridge
 	dh_installman
 	dh_link
 	dh_strip

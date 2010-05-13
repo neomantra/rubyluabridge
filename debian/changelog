@@ -5,6 +5,28 @@ rubyluabridge (0.7.0-1) unstable; urgency=low
 
  -- Evan Wies <neomantra@gmail.com>  Thu, 13 May 2010 02:13:04 -0500
 
+rubyluabridge (0.6.0-4) unstable; urgency=low
+
+  * Update package section to ruby to comply with new archive layout.
+  * Bump standards version to 3.8.3 (no changes)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 27 Aug 2009 20:38:01 -0400
+
+rubyluabridge (0.6.0-3) unstable; urgency=medium
+
+  * Quit installing the shared library into /usr/lib/ruby/1.8/i486-linux
+    on non-x86 platforms
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Sat, 11 Oct 2008 10:24:54 -0400
+
+rubyluabridge (0.6.0-2) unstable; urgency=high
+
+  * Bump Standards-Version to 3.8.0 (no changes).
+  * Change Build-Depends: libgems-ruby1.8 to rubygems1.8 (Closes: #490316)
+    - Fixes FTBFS, set urgency to high
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 17 Jul 2008 21:32:25 -0400
+
 rubyluabridge (0.6.0-1) unstable; urgency=low
 
   * Initial release (Closes: #462033)

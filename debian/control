@@ -1,10 +1,10 @@
 Source: rubyluabridge
-Section: libdevel
+Section: ruby
 Priority: optional
 Maintainer: Athena Capital Research <acr-debian@athenacr.com>
 Uploaders: Roberto C. Sanchez <roberto@connexer.com>
-Build-Depends: debhelper (>= 5), liblua5.1-0-dev, rake, ruby1.8-dev, libgems-ruby1.8, libboost1.38-dev | libboost1.39-dev | libboost1.40-dev | libboost1.41-dev | libboost1.42-dev
-Standards-Version: 3.7.3
+Build-Depends: debhelper (>= 5), liblua5.1-0-dev, rake, ruby1.8-dev, rubygems1.8, libboost1.38-dev | libboost1.39-dev | libboost1.40-dev | libboost1.41-dev | libboost1.42-dev
+Standards-Version: 3.8.3
 Homepage: http://rubyluabridge.rubyforge.org
 Vcs-Browser: http://rubyluabridge.rubyforge.org/svn/debian/rubyluabridge/trunk
 Vcs-Svn: svn://rubyforge.org/var/svn/rubyluabridge/debian/rubyluabridge/trunk
@@ -12,9 +12,11 @@ Vcs-Svn: svn://rubyforge.org/var/svn/rubyluabridge/debian/rubyluabridge/trunk
 Package: libluabridge-ruby1.8
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, liblua5.1-0
-Description: access Lua from Ruby
+Description: access Lua from Ruby (Ruby 1.8)
  RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
  extension that uses the actual Lua C library.
+ .
+ This package is built for Ruby 1.8.
 
 Package: libluabridge-ruby
 Architecture: all
