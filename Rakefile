@@ -26,7 +26,7 @@ Rake::RDocTask.new("rdoc") do |rdoc|
     rdoc.main = "README"
     rdoc.rdoc_files.include(
         "README", "LICENSE", "RUBY_IN_LUA", "LUA_IN_RUBY",
-        "rubyluabridge.c", "tests/*.rb" )
+        "rubyluabridge.cc", "tests/*.rb" )
     rdoc.rdoc_dir = RDOC_DIR
     
     rdoc.title = "RubyLuaBridge: A seamless bridge between Ruby and Lua."

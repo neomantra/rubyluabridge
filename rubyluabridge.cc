@@ -30,9 +30,11 @@
  */
 
 #include <assert.h>
+extern "C" {
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+}
 #include "rubyluabridge.h"
 #include "st.h"
 
@@ -228,7 +230,7 @@ int marshal_ruby_to_lua_top( lua_State* L, VALUE val )
     case T_HASH:
         {
         lua_newtable( L );
-        rb_hash_foreach( val, _rhash_to_table_iter_func, L );
+        rb_hash_foreach( val, (int (*)(ANYARGS))_rhash_to_table_iter_func, VALUE(L) );
         break;
         }
     // Array becomes a table-array.
@@ -800,7 +802,7 @@ VALUE rlua_State_method_missing( int argc, VALUE* argv, VALUE self )
 
     Check_Type( argv[0], T_SYMBOL );
     ID methodid = SYM2ID( argv[0] );
-    char* key = rb_id2name( methodid );
+    const char* key = rb_id2name( methodid );
     
     lua_pushvalue( L, LUA_GLOBALSINDEX );
     return rlua_method_missing_dispatch( L, key, self, argc, argv );
@@ -1025,7 +1027,7 @@ VALUE rlua_RefObject_method_missing( int argc, VALUE* argv, VALUE self )
 
     Check_Type( argv[0], T_SYMBOL );
     ID methodid = SYM2ID( argv[0] );
-    char* key = rb_id2name( methodid );
+    const char* key = rb_id2name( methodid );
 
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     if ( !is_indexable(L, -1) )
@@ -1578,6 +1580,7 @@ VALUE rlua_Table_each_ivalue( VALUE self )
 //
 /*****************************************************************************/
 
+extern "C" {
 /*
   Document-module: Lua
   
@@ -1606,21 +1609,21 @@ void Init_rubyluabridge()
     // Lua::State class
     cLua_State = rb_define_class_under( mLua, "State", rb_cObject ); 
     rb_define_alloc_func( cLua_State, rlua_State_alloc ); 
-    rb_define_method( cLua_State, "initialize",     rlua_State_initialize, -1 ); 
-    rb_define_method( cLua_State, "method_missing", rlua_State_method_missing, -1 );
-    rb_define_method( cLua_State, "__state",        rlua_State_state, 0 );
-    rb_define_method( cLua_State, "__top",          rlua_State_top, 0 ); 
-    rb_define_method( cLua_State, "__globals",      rlua_State_globals, 0 );
-    rb_define_method( cLua_State, "__registry",     rlua_State_registry, 0 );
-    rb_define_method( cLua_State, "__loadlibs",     rlua_State_loadlibs, 1 );
-    rb_define_method( cLua_State, "new_table_at",   rlua_State_new_table_at, 1 );
-    rb_define_method( cLua_State, "[]",             rlua_State_getindex, 1 );
-    rb_define_method( cLua_State, "[]=",            rlua_State_setindex, 2 );
-    rb_define_method( cLua_State, "eval",           rlua_State_eval, 1 );
-    rb_define_method( cLua_State, "eval_mult",      rlua_State_eval_mult, 1 ); 
-    rb_define_method( cLua_State, "callable?",      rlua_State_is_callable, 0 );
-    rb_define_method( cLua_State, "indexable?",     rlua_State_is_indexable, 0 );
-    rb_define_method( cLua_State, "new_indexable?", rlua_State_is_new_indexable, 0 );
+    rb_define_method( cLua_State, "initialize",     RUBY_METHOD_FUNC(rlua_State_initialize), -1 ); 
+    rb_define_method( cLua_State, "method_missing", RUBY_METHOD_FUNC(rlua_State_method_missing), -1 );
+    rb_define_method( cLua_State, "__state",        RUBY_METHOD_FUNC(rlua_State_state), 0 );
+    rb_define_method( cLua_State, "__top",          RUBY_METHOD_FUNC(rlua_State_top), 0 ); 
+    rb_define_method( cLua_State, "__globals",      RUBY_METHOD_FUNC(rlua_State_globals), 0 );
+    rb_define_method( cLua_State, "__registry",     RUBY_METHOD_FUNC(rlua_State_registry), 0 );
+    rb_define_method( cLua_State, "__loadlibs",     RUBY_METHOD_FUNC(rlua_State_loadlibs), 1 );
+    rb_define_method( cLua_State, "new_table_at",   RUBY_METHOD_FUNC(rlua_State_new_table_at), 1 );
+    rb_define_method( cLua_State, "[]",             RUBY_METHOD_FUNC(rlua_State_getindex), 1 );
+    rb_define_method( cLua_State, "[]=",            RUBY_METHOD_FUNC(rlua_State_setindex), 2 );
+    rb_define_method( cLua_State, "eval",           RUBY_METHOD_FUNC(rlua_State_eval), 1 );
+    rb_define_method( cLua_State, "eval_mult",      RUBY_METHOD_FUNC(rlua_State_eval_mult), 1 ); 
+    rb_define_method( cLua_State, "callable?",      RUBY_METHOD_FUNC(rlua_State_is_callable), 0 );
+    rb_define_method( cLua_State, "indexable?",     RUBY_METHOD_FUNC(rlua_State_is_indexable), 0 );
+    rb_define_method( cLua_State, "new_indexable?", RUBY_METHOD_FUNC(rlua_State_is_new_indexable), 0 );
 // TODO: more methods!
 
 //    rb_define_method( cLua_State, "execute",      lua_State_eval, 1 );
@@ -1629,34 +1632,37 @@ void Init_rubyluabridge()
     // Lua::RefObject class
     cLua_RefObject = rb_define_class_under( mLua, "RefObject", rb_cObject ); 
     rb_define_alloc_func( cLua_RefObject, rlua_RefObject_alloc ); 
-    rb_define_method( cLua_RefObject, "initialize",     rlua_RefObject_initialize, 2 ); 
-    rb_define_method( cLua_RefObject, "method_missing", rlua_RefObject_method_missing, -1 );
-    rb_define_method( cLua_RefObject, "__state",        rlua_RefObject_state, 0 );
-    rb_define_method( cLua_RefObject, "__length",       rlua_RefObject_length, 0 );
-    rb_define_method( cLua_RefObject, "__type",         rlua_RefObject_type, 0 );
-    rb_define_method( cLua_RefObject, "__metatable",    rlua_RefObject_getmetatable, 0 );
-    rb_define_method( cLua_RefObject, "__metatable=",   rlua_RefObject_setmetatable, 1 );
-    rb_define_method( cLua_RefObject, "[]",             rlua_RefObject_getindex, 1 );
-    rb_define_method( cLua_RefObject, "[]=",            rlua_RefObject_setindex, 2 );
-    rb_define_method( cLua_RefObject, "new_table_at",   rlua_RefObject_new_table_at, 1 );
-    rb_define_method( cLua_RefObject, "to_s",           rlua_RefObject_to_s, 0 );
-    rb_define_method( cLua_RefObject, "method_missing", rlua_RefObject_method_missing, -1 );
+    rb_define_method( cLua_RefObject, "initialize",     RUBY_METHOD_FUNC(rlua_RefObject_initialize), 2 ); 
+    rb_define_method( cLua_RefObject, "method_missing", RUBY_METHOD_FUNC(rlua_RefObject_method_missing), -1 );
+    rb_define_method( cLua_RefObject, "__state",        RUBY_METHOD_FUNC(rlua_RefObject_state), 0 );
+    rb_define_method( cLua_RefObject, "__length",       RUBY_METHOD_FUNC(rlua_RefObject_length), 0 );
+    rb_define_method( cLua_RefObject, "__type",         RUBY_METHOD_FUNC(rlua_RefObject_type), 0 );
+    rb_define_method( cLua_RefObject, "__metatable",    RUBY_METHOD_FUNC(rlua_RefObject_getmetatable), 0 );
+    rb_define_method( cLua_RefObject, "__metatable=",   RUBY_METHOD_FUNC(rlua_RefObject_setmetatable), 1 );
+    rb_define_method( cLua_RefObject, "[]",             RUBY_METHOD_FUNC(rlua_RefObject_getindex), 1 );
+    rb_define_method( cLua_RefObject, "[]=",            RUBY_METHOD_FUNC(rlua_RefObject_setindex), 2 );
+    rb_define_method( cLua_RefObject, "new_table_at",   RUBY_METHOD_FUNC(rlua_RefObject_new_table_at), 1 );
+    rb_define_method( cLua_RefObject, "to_s",           RUBY_METHOD_FUNC(rlua_RefObject_to_s), 0 );
+    rb_define_method( cLua_RefObject, "method_missing", RUBY_METHOD_FUNC(rlua_RefObject_method_missing), -1 );
     rb_undef_method(  cLua_RefObject, "type" );
     rb_undef_method(  cLua_RefObject, "id" );
-    rb_define_method( cLua_RefObject, "callable?",      rlua_RefObject_is_callable, 0 );
-    rb_define_method( cLua_RefObject, "indexable?",     rlua_RefObject_is_indexable, 0 );
-    rb_define_method( cLua_RefObject, "new_indexable?", rlua_RefObject_is_new_indexable, 0 );
+    rb_define_method( cLua_RefObject, "callable?",      RUBY_METHOD_FUNC(rlua_RefObject_is_callable), 0 );
+    rb_define_method( cLua_RefObject, "indexable?",     RUBY_METHOD_FUNC(rlua_RefObject_is_indexable), 0 );
+    rb_define_method( cLua_RefObject, "new_indexable?", RUBY_METHOD_FUNC(rlua_RefObject_is_new_indexable), 0 );
 
     // Lua::Table class
     cLua_Table = rb_define_class_under( mLua, "Table", cLua_RefObject ); 
-    rb_define_method( cLua_Table, "to_array",    rlua_Table_to_array, 0 ); 
-    rb_define_method( cLua_Table, "to_hash",     rlua_Table_to_hash, 0 ); 
-    rb_define_method( cLua_Table, "each_ipair",  rlua_Table_each_ipair, 0 ); 
-    rb_define_method( cLua_Table, "each_ikey",   rlua_Table_each_ikey, 0 ); 
-    rb_define_method( cLua_Table, "each_ivalue", rlua_Table_each_ivalue, 0 ); 
-    rb_define_method( cLua_Table, "each_pair",   rlua_Table_each_pair, 0 ); 
-    rb_define_method( cLua_Table, "each_key",    rlua_Table_each_key, 0 ); 
-    rb_define_method( cLua_Table, "each_value",  rlua_Table_each_value, 0 ); 
+    rb_define_method( cLua_Table, "to_array",    RUBY_METHOD_FUNC(rlua_Table_to_array), 0 ); 
+    rb_define_method( cLua_Table, "to_hash",     RUBY_METHOD_FUNC(rlua_Table_to_hash), 0 ); 
+    rb_define_method( cLua_Table, "each_ipair",  RUBY_METHOD_FUNC(rlua_Table_each_ipair), 0 ); 
+    rb_define_method( cLua_Table, "each_ikey",   RUBY_METHOD_FUNC(rlua_Table_each_ikey), 0 ); 
+    rb_define_method( cLua_Table, "each_ivalue", RUBY_METHOD_FUNC(rlua_Table_each_ivalue), 0 ); 
+    rb_define_method( cLua_Table, "each_pair",   RUBY_METHOD_FUNC(rlua_Table_each_pair), 0 ); 
+    rb_define_method( cLua_Table, "each_key",    RUBY_METHOD_FUNC(rlua_Table_each_key), 0 ); 
+    rb_define_method( cLua_Table, "each_value",  RUBY_METHOD_FUNC(rlua_Table_each_value), 0 ); 
     rb_define_alias(  cLua_Table, "each", "each_pair" );
     rb_define_alias(  cLua_Table, "each_index", "each_ikey" );
 }
+
+} // extern "C"
+

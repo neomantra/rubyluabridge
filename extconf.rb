@@ -19,6 +19,8 @@ if enable_config('rlb-debug')
     $CFLAGS += '-DRLB_DEBUG '
 end
 
+# link in C++ libraries
+$LIBS << " -lstdc++ -lc"
 
 nolua_msg = <<END_OF_MESSAGE
 need liblua.
