@@ -3,7 +3,7 @@ Section: libdevel
 Priority: optional
 Maintainer: Athena Capital Research <acr-debian@athenacr.com>
 Uploaders: Roberto C. Sanchez <roberto@connexer.com>
-Build-Depends: debhelper (>= 5), liblua5.1-0-dev, rake, ruby1.8-dev, libgems-ruby1.8
+Build-Depends: debhelper (>= 5), liblua5.1-0-dev, rake, ruby1.8-dev, libgems-ruby1.8, libboost1.38-dev | libboost1.39-dev | libboost1.40-dev | libboost1.41-dev | libboost1.42-dev
 Standards-Version: 3.7.3
 Homepage: http://rubyluabridge.rubyforge.org
 Vcs-Browser: http://rubyluabridge.rubyforge.org/svn/debian/rubyluabridge/trunk
