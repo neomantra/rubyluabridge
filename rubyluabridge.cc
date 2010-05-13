@@ -193,7 +193,7 @@ VALUE marshal_lua_to_ruby( VALUE Rstate, lua_State* L, int idx )
         int ref = luaL_ref( L, LUA_REGISTRYINDEX );
         RLB_DEBUG_PRINT( "ref created:  L:%p   r:%d\n", L, ref);
         // create a new lua_Ref object holding it
-        VALUE args[2] = { Rstate, INT2FIX(ref) };
+        VALUE args[2] = { Rstate, INT2NUM(ref) };
         VALUE res = rb_class_new_instance( 2, args, 
                 (ltype == LUA_TTABLE) ? cLua_Table : cLua_RefObject );
         return res;
@@ -254,7 +254,7 @@ int marshal_ruby_to_lua_top( lua_State* L, VALUE val )
         {
             rlua_RefObject* pRefObject;
             Data_Get_Struct( val, rlua_RefObject, pRefObject );
-            if ( pRefObject->Lstate != L )
+            if ( pRefObject->getState() != L )
             {
                 // TODO: handle this better
                 rb_warning( "Marshalling Lua::RefObject between two different states.  Pushing nil." );
@@ -469,29 +469,6 @@ void load_std_library_by_name( lua_State* L, const char* libname )
 // Forward declaration
 static VALUE rlua_State_loadlibs( VALUE self, VALUE libs );
 
-
-// increment our refcount
-static void rlua_State_addref( rlua_State* pRLState )
-{
-	RLB_DEBUG_PRINT( "state addref: %p    %d\n", pRLState, pRLState->refcount );
-    ++pRLState->refcount;
-}
-
-
-// decrement our refcount, releasing if we're done
-static void rlua_State_decref( rlua_State* pRLState )
-{
-	RLB_DEBUG_PRINT( "state decref: %p    %d\n", pRLState, pRLState->refcount );
-    if ( --pRLState->refcount <= 0 )
-    {
-    	RLB_DEBUG_PRINT( "state close: %p    %d\n", pRLState, pRLState->refcount );
-        assert( pRLState != NULL );
-        lua_close( pRLState->Lstate );
-        free( pRLState );
-    }
-}
-
-
 /* call-seq: 
  *        Lua::State.new( options )
  * 
@@ -511,16 +488,15 @@ static VALUE rlua_State_initialize( int argc, VALUE* argv, VALUE self )
     Data_Get_Struct( self, rlua_State, pRLState ); 
 
     // create new Lua state
-    pRLState->Lstate = luaL_newstate();
-    if ( pRLState->Lstate == NULL )
+    pRLState->Lstate.reset( luaL_newstate(), lua_close_deleter() );
+    if ( !pRLState->getState() )
         rb_raise( rb_eNoMemError, "lua_State memory allocation failed" );
-    pRLState->refcount = 1;
 
-    RLB_DEBUG_PRINT( "state init:  ptr:%p   L:%p\n", pRLState, pRLState->Lstate );
+    RLB_DEBUG_PRINT( "state   init: ptr:%p   L:%p\n", pRLState, pRLState->getState() );
 
     // if there is no arguments (or nil first value), load all
     if ( argc == 0 || NIL_P(argv[0]) ) {
-        luaL_openlibs( pRLState->Lstate );
+        luaL_openlibs( pRLState->getState() );
         return self;
     }
     // otherwise, it has to be a hash
@@ -537,8 +513,7 @@ static VALUE rlua_State_initialize( int argc, VALUE* argv, VALUE self )
 /// free the lua_State, create with lua_State_alloc
 static void rlua_State_free( rlua_State* pRLState )
 {
-	RLB_DEBUG_PRINT( "state free:  ptr:%p   L:%p\n", pRLState, pRLState->Lstate );
-    rlua_State_decref( pRLState );
+	RLB_DEBUG_PRINT( "state free  :  ptr:%p   L:%p\n", pRLState, pRLState->getState() );
 } 
 
 
@@ -546,10 +521,9 @@ static void rlua_State_free( rlua_State* pRLState )
 /// this actually performs the luaL_newstate allocation
 static VALUE rlua_State_alloc( VALUE klass )
 {
-    rlua_State* pRLState = (rlua_State*)malloc( sizeof(rlua_State) );
-    if ( pRLState == NULL )
+    rlua_State* pRLState = new rlua_State();
+    if ( !pRLState )
         rb_raise( rb_eNoMemError, "Out of memory when allocating rlua_State" );
-    pRLState->Lstate  = NULL;
     RLB_DEBUG_PRINT( "state malloc: ptr:%p\n", pRLState );
     // wrap it inside a Ruby object 
     VALUE obj = Data_Wrap_Struct( klass, NULL, rlua_State_free, pRLState ); 
@@ -581,7 +555,7 @@ static VALUE rlua_State_top( VALUE self )
 { 
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
-    int top = lua_gettop( pRLState->Lstate );
+    int top = lua_gettop( pRLState->getState() );
     return INT2NUM( top ); 
 } 
 
@@ -596,7 +570,7 @@ static VALUE rlua_State_globals( VALUE self )
 { 
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
-    lua_State* L = pRLState->Lstate;
+    lua_State* L = pRLState->getState();
     
     lua_pushvalue( L, LUA_GLOBALSINDEX );
     VALUE result = marshal_lua_to_ruby( self, L, -1 );
@@ -619,7 +593,7 @@ static VALUE rlua_State_registry( VALUE self )
 { 
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
-    lua_State* L = pRLState->Lstate;
+    lua_State* L = pRLState->getState();
 
     lua_pushvalue( L, LUA_REGISTRYINDEX );
     VALUE result = marshal_lua_to_ruby( self, L, -1 );
@@ -653,7 +627,7 @@ static VALUE rlua_State_loadlibs( VALUE self, VALUE libs )
 {
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
-    lua_State* L = pRLState->Lstate;
+    lua_State* L = pRLState->getState();
     
     // if it is empty or :all, load all
     // if it is a symbol, load that the lib it matches
@@ -707,7 +681,7 @@ static VALUE rlua_State_eval( VALUE self, VALUE str )
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
     SafeStringValue(str); 
-    lua_State* L = pRLState->Lstate;
+    lua_State* L = pRLState->getState();
     
     // process the string to a chunk
     int err = luaL_loadbuffer( L, RSTRING(str)->ptr, RSTRING(str)->len, "Lua::State.eval" );
@@ -749,7 +723,7 @@ static VALUE rlua_State_eval_mult( VALUE self, VALUE str )
     rlua_State* pRLState;
     Data_Get_Struct( self, rlua_State, pRLState ); 
     SafeStringValue(str); 
-    lua_State* L = pRLState->Lstate;
+    lua_State* L = pRLState->getState();
     int args_bottom = lua_gettop(L);
 
     // process the string to a chunk
@@ -798,7 +772,7 @@ VALUE rlua_State_method_missing( int argc, VALUE* argv, VALUE self )
 {
     rlua_State* pRLstate;
     Data_Get_Struct( self, rlua_State, pRLstate ); 
-    lua_State* L = pRLstate->Lstate;
+    lua_State* L = pRLstate->getState();
 
     Check_Type( argv[0], T_SYMBOL );
     ID methodid = SYM2ID( argv[0] );
@@ -818,7 +792,7 @@ VALUE rlua_State_getindex( VALUE self, VALUE key )
 {
     rlua_State* pRLstate;
     Data_Get_Struct( self, rlua_State, pRLstate ); 
-    lua_State* L = pRLstate->Lstate;
+    lua_State* L = pRLstate->getState();
     
     marshal_ruby_to_lua_top( L, key );
     lua_gettable( L, LUA_GLOBALSINDEX );
@@ -840,7 +814,7 @@ VALUE rlua_State_setindex( VALUE self, VALUE key, VALUE val )
 {
     rlua_State* pRLstate;
     Data_Get_Struct( self, rlua_State, pRLstate ); 
-    lua_State* L = pRLstate->Lstate;
+    lua_State* L = pRLstate->getState();
     
     marshal_ruby_to_lua_top( L, key );
     marshal_ruby_to_lua_top( L, val );
@@ -859,7 +833,7 @@ VALUE rlua_State_new_table_at( VALUE self, VALUE key )
 {
     rlua_State* pRLstate;
     Data_Get_Struct( self, rlua_State, pRLstate ); 
-    lua_State* L = pRLstate->Lstate;
+    lua_State* L = pRLstate->getState();
 
     marshal_ruby_to_lua_top( L, key );
     lua_newtable( L );
@@ -931,58 +905,39 @@ static VALUE rlua_RefObject_initialize( VALUE self, VALUE Rstate, VALUE RluaRef 
     
     RLB_DEBUG_PRINT( "ref init:  self:%d   Rstate:%p  TYPE(Rstate):%d  RluaRef:%d TYPE(RluaRef):%d  luaRef:%d\n",
         (unsigned long)self, (unsigned long)Rstate, (unsigned long)TYPE(Rstate),
-        (unsigned long)RluaRef, (unsigned long)TYPE(RluaRef), FIX2INT(RluaRef) );
+        (unsigned long)RluaRef, (unsigned long)TYPE(RluaRef), NUM2INT(RluaRef) );
 
     pRef->Rstate   = Rstate;
-    pRef->Lref     = FIX2INT(RluaRef);
+    pRef->Lref     = NUM2INT(RluaRef);
 
     rlua_State* pRState;
     Data_Get_Struct( Rstate, rlua_State, pRState );
     pRef->Lstate  = pRState->Lstate;
-    rlua_State_addref( pRState );
 
     return self;
-}
-
-
-/// mark ourselves during Ruby's GC cycle
-/// mark our dependency on our parent to prevent it from being sweeped
-static void rlua_RefObject_mark( rlua_RefObject* pRefObject )
-{
-    // mark our parent Rstate, to prevent it from being gc'd
-    rb_gc_mark( pRefObject->Rstate );
 }
 
 
 /// free the Lua::RefObject, created with lua_RefObject_alloc
 static void rlua_RefObject_free( rlua_RefObject* pRefObject )
 {
-	RLB_DEBUG_PRINT( "ref free:  ptr:%p   ref:%d  L:%p\n", pRefObject, pRefObject->Lref, pRefObject->Lstate );
+	RLB_DEBUG_PRINT( "ref free:  ptr:%p   ref:%d  L:%p\n", pRefObject, pRefObject->Lref, pRefObject->getState() );
     assert( pRefObject != NULL );
-    luaL_unref( pRefObject->Lstate, LUA_REGISTRYINDEX, pRefObject->Lref );
+    luaL_unref( pRefObject->getState(), LUA_REGISTRYINDEX, pRefObject->Lref );
     
-    if ( pRefObject->Rstate != Qnil && TYPE(pRefObject->Rstate) != T_NONE )
-    {
-        rlua_State* pRState;
-        RLB_DEBUG_PRINT( "Rstate:%p  TYPE(RState):%d\n", (unsigned long)pRefObject->Rstate, TYPE(pRefObject->Rstate) );
-        Data_Get_Struct( pRefObject->Rstate, rlua_State, pRState );
-        rlua_State_decref( pRState );    
-    }
-    free( pRefObject );
+    delete pRefObject;
 } 
 
 
 /// allocate a new Lua::RefObject
 static VALUE rlua_RefObject_alloc( VALUE klass )
 {
-    rlua_RefObject* pRef = (rlua_RefObject*)malloc( sizeof(rlua_RefObject) );
-    if ( pRef == NULL )
+    rlua_RefObject* pRef = new rlua_RefObject();
+    if ( !pRef )
         rb_raise( rb_eNoMemError, "Out of memory when allocating rlua_RefObject" );
-    pRef->Lstate = NULL;
+//  pRef->Lstate = NULL;
     pRef->Lref   = LUA_NOREF;
     pRef->Rstate = Qnil;
-
-//  RLB_DEBUG_PRINT( "ref malloc: ptr:%p\n", pRef );
 
     // wrap it inside a Ruby object 
     //rlua_RefObject_mark
@@ -1023,7 +978,7 @@ VALUE rlua_RefObject_method_missing( int argc, VALUE* argv, VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
 
     Check_Type( argv[0], T_SYMBOL );
     ID methodid = SYM2ID( argv[0] );
@@ -1055,7 +1010,7 @@ VALUE rlua_RefObject_length( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     size_t len = lua_objlen(L, -1);
@@ -1075,7 +1030,7 @@ VALUE rlua_RefObject_type( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     size_t len = lua_type(L, -1);
@@ -1096,7 +1051,7 @@ VALUE rlua_RefObject_getmetatable( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     
@@ -1119,7 +1074,7 @@ VALUE rlua_RefObject_setmetatable( VALUE self, VALUE mtable )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     
@@ -1142,7 +1097,7 @@ VALUE rlua_RefObject_getindex( VALUE self, VALUE key )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     if ( !is_indexable(L, -1) )
@@ -1173,7 +1128,7 @@ VALUE rlua_RefObject_setindex( VALUE self, VALUE key, VALUE val )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     if ( !is_indexable(L, -1) )
@@ -1202,7 +1157,7 @@ VALUE rlua_RefObject_new_table_at( VALUE self, VALUE key )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     if ( !is_indexable(L, -1) )
@@ -1232,7 +1187,7 @@ VALUE rlua_RefObject_to_s( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     rluaB_tostring( L );
@@ -1254,7 +1209,7 @@ VALUE rlua_RefObject_is_indexable( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
 
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     VALUE result = is_indexable(L, -1) ? Qtrue : Qfalse; 
@@ -1274,7 +1229,7 @@ VALUE rlua_RefObject_is_new_indexable( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
 
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     VALUE result = is_new_indexable(L, -1) ? Qtrue : Qfalse; 
@@ -1294,7 +1249,7 @@ VALUE rlua_RefObject_is_callable( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
 
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     VALUE result = is_callable(L, -1) ? Qtrue : Qfalse; 
@@ -1327,7 +1282,7 @@ VALUE rlua_Table_to_array( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
         
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     int tablelen = lua_objlen( L, -1 );
@@ -1356,7 +1311,7 @@ VALUE rlua_Table_to_hash( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
 
     VALUE hash = rb_hash_new(); 
     
@@ -1394,7 +1349,7 @@ VALUE rlua_Table_each_pair( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     // table is in the stack at index 't'
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
@@ -1426,7 +1381,7 @@ VALUE rlua_Table_each_key( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     // table is in the stack at index 't'
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
@@ -1457,7 +1412,7 @@ VALUE rlua_Table_each_value( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     // table is in the stack at index 't'
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
@@ -1492,7 +1447,7 @@ VALUE rlua_Table_each_ipair( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     int tablelen = lua_objlen( L, -1 );
@@ -1524,7 +1479,7 @@ VALUE rlua_Table_each_ikey( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     int tablelen = lua_objlen( L, -1 );
@@ -1554,7 +1509,7 @@ VALUE rlua_Table_each_ivalue( VALUE self )
 {
     rlua_RefObject* pRefObject;
     Data_Get_Struct( self, rlua_RefObject, pRefObject ); 
-    lua_State* L = pRefObject->Lstate;
+    lua_State* L = pRefObject->getState();
     
     lua_rawgeti( L, LUA_REGISTRYINDEX, pRefObject->Lref );
     int tablelen = lua_objlen( L, -1 );

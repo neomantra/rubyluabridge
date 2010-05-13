@@ -35,19 +35,30 @@
 #include <lua.h>
 #include <ruby.h>
 
-// Version Information
-#define RUBYLUABRIDGE_VERSION       ("0.6")
-#define RUBYLUABRIDGE_VERSION_NUM   (000600)
+#include <boost/shared_ptr.hpp>
 
+// Version Information
+#define RUBYLUABRIDGE_VERSION       ("0.7")
+#define RUBYLUABRIDGE_VERSION_NUM   (000700)
+
+
+// shared_ptr deleter which invokes lua_close
+struct lua_close_deleter
+{
+    void operator()(lua_State* L)
+    {
+        lua_close(L);
+    }
+};
 
 /// Struct for our Ruby Lua::State.
-/// It simply holds the lua_State*
-typedef struct
+/// Manages the lifetime of a lua_State using a shared_ptr
+struct rlua_State
 {
-    lua_State*   Lstate;    /// The lua_State we are wrapping
-    int          refcount;  /// this object's reference count, 
-                            ///    to maintain RefObject dependencies
-} rlua_State;
+    lua_State* getState() { return Lstate.get(); }
+
+    boost::shared_ptr<lua_State> Lstate; /// The lua_State we are wrapping
+};
 
 
 /// Struct for our Ruby Lua::Object.
@@ -57,12 +68,14 @@ typedef struct
 /// It uses Lua's "standard" reference system:
 ///     http://www.lua.org/manual/5.1/manual.html#luaL_ref
 /// We follow the convention of using Lua's registry to store the references.
-typedef struct
+struct rlua_RefObject
 {
-    lua_State*   Lstate;    /// The lua_State where the reference is held.
-    int          Lref;      /// The reference id
-    VALUE        Rstate;    /// The Ruby Lua::State where this ref came from
-} rlua_RefObject;
+    lua_State* getState() { return Lstate.get(); }
+
+    boost::shared_ptr<lua_State> Lstate; /// The lua_State where the reference is held.
+    int                          Lref;   /// The reference id
+    VALUE                        Rstate; /// The Ruby Lua::State where this ref came from
+};
 
 
 #endif // NEOMANTRA_RUBYLUABRIDGE_H_
