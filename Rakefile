@@ -3,8 +3,7 @@ require 'rake/gempackagetask'
 require 'rake/testtask'
 require 'rake/clean'
 require 'rubygems'
-
-#require 'rubyluabridge'
+require 'yard'
 
 # Specifies the default task to execute. This is often the "test" task
 # and we'll change things around as soon as we have some tests.
@@ -18,11 +17,18 @@ RDOC_DIR = "doc/html"
 CLEAN << RDOC_DIR
 
 
+# This is the task that generates the +yardrdoc+ documentation from the
+# source files. Instantiating YARD::Rake::YardocTask automatically generates a
+# task called `yardoc`.
+YARD::Rake::YardocTask.new("yardoc") do |yardoc|
+    yardoc.files = [ "README", "rubyluabridge.cc", "tests/*.rb" ]
+    yardoc.options = ["--files", "LICENSE,RUBY_IN_LUA,LUA_IN_RUBY,rubyluabridge.cc"]
+end
+
 # This is the task that generates the +rdoc+ documentation from the
 # source files. Instantiating Rake::RDocTask automatically generates a
 # task called `rdoc`.
 Rake::RDocTask.new("rdoc") do |rdoc|
-    
     rdoc.main = "README"
     rdoc.rdoc_files.include(
         "README", "LICENSE", "RUBY_IN_LUA", "LUA_IN_RUBY",
@@ -45,8 +51,8 @@ end
 # together into gem archives. You can also use it to generate tarball
 # and zip archives.
 PROJECT_NAME    = "rubyluabridge"
-PKG_VERSION     = "0.5.0" #Lua::BRIDGE_VERSION
-PKG_FILES       = FileList['lib/**/*.rb', 'bin/**/*', 'examples/**/*', '[A-Z]*', 'test/**/*'].to_a
+PKG_VERSION     = "0.7.0" #Lua::BRIDGE_VERSION
+PKG_FILES       = FileList['[A-Z]*', 'test/**/*'].to_a
 
 spec = Gem::Specification.new do |s|
     s.platform = Gem::Platform::RUBY
