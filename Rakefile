@@ -21,8 +21,8 @@ CLEAN << RDOC_DIR
 # source files. Instantiating YARD::Rake::YardocTask automatically generates a
 # task called `yardoc`.
 YARD::Rake::YardocTask.new("yardoc") do |yardoc|
-    yardoc.files = [ "README", "rubyluabridge.cc", "tests/*.rb" ]
-    yardoc.options = ["--files", "LICENSE,RUBY_IN_LUA,LUA_IN_RUBY,rubyluabridge.cc"]
+    yardoc.files = [ "README", "rubyluabridge.cpp", "tests/*.rb" ]
+    yardoc.options = ["--files", "LICENSE,RUBY_IN_LUA,LUA_IN_RUBY,rubyluabridge.cpp"]
 end
 
 # This is the task that generates the +rdoc+ documentation from the
@@ -32,7 +32,7 @@ Rake::RDocTask.new("rdoc") do |rdoc|
     rdoc.main = "README"
     rdoc.rdoc_files.include(
         "README", "LICENSE", "RUBY_IN_LUA", "LUA_IN_RUBY",
-        "rubyluabridge.cc", "tests/*.rb" )
+        "rubyluabridge.cpp", "tests/*.rb" )
     rdoc.rdoc_dir = RDOC_DIR
     
     rdoc.title = "RubyLuaBridge: A seamless bridge between Ruby and Lua."
