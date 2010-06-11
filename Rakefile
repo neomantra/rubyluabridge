@@ -7,7 +7,7 @@ require 'yard'
 
 # Specifies the default task to execute. This is often the "test" task
 # and we'll change things around as soon as we have some tests.
-task  :default => [:rdoc]
+task  :default => [:yardoc]
 
 # The directory to generate +rdoc+ in.
 RDOC_DIR = "doc/html"
@@ -22,7 +22,9 @@ CLEAN << RDOC_DIR
 # task called `yardoc`.
 YARD::Rake::YardocTask.new("yardoc") do |yardoc|
     yardoc.files = [ "README", "rubyluabridge.cpp", "tests/*.rb" ]
-    yardoc.options = ["--files", "LICENSE,RUBY_IN_LUA,LUA_IN_RUBY,rubyluabridge.cpp"]
+    yardoc.options = ["--files", "LICENSE,RUBY_IN_LUA,LUA_IN_RUBY,rubyluabridge.cpp",
+                      "--output-dir", RDOC_DIR
+                     ]
 end
 
 # This is the task that generates the +rdoc+ documentation from the
