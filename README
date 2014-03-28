@@ -9,7 +9,7 @@ Relevant web pages:
 
 == Installation
 
-RubyLuaBridge is a C extension that uses the actual Lua C library.  It currently targets Lua 5.1 and Ruby 1.8.  You must run:
+RubyLuaBridge is a C extension that uses the actual Lua C library.  It currently targets Lua 5.1 and Ruby 1.9/2.0.  You must run:
 
    % ruby extconf.rb --with-lua-include=/path/to/lua/include --with-lualib=lualibname
    % make
@@ -92,6 +92,7 @@ Licensed under the BSD License.  It is free software, and may be
 redistributed under the terms specified in the accompanying LICENSE file, as follows:
 
 Copyright (c) 2007, Evan Wies.  All rights reserved.
+Copyright (c) 2014, Roberto C. Sanchez.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -124,6 +125,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * {RubyLuaBridge Homepage}[http://rubyluabridge.rubyforge.org/]
 * {RubyForge Project}[http://rubyforge.org/projects/rubyluabridge/]
 
-Download the latest sources from there.  Please use the mailing list and issue tracking features as well.
+Download the latest sources from {BitBucket}[http://bitbucket.org/neomantra/rubyluabridge]
 
-I am particularly interested in problems you may have on various systems.  I have only tested it in Ubuntu Dapper and MacOSX.
+Please use the mailing list and issue tracking features as well.
+
