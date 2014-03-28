@@ -36,7 +36,7 @@ extern "C" {
 #include <lauxlib.h>
 }
 #include "rubyluabridge.h"
-#include "st.h"
+#include "ruby/st.h"
 
 // Debug Scaffolding
 #ifdef RLB_DEBUG
@@ -218,10 +218,10 @@ int marshal_ruby_to_lua_top( lua_State* L, VALUE val )
     case T_FIXNUM: lua_pushnumber( L, FIX2INT(val) );    break;
     case T_BIGNUM: lua_pushnumber( L, NUM2DBL(val) );    break;
     case T_FLOAT:
-        lua_pushnumber( L, (lua_Number)RFLOAT(val)->value );
+        lua_pushnumber( L, (lua_Number)RFLOAT_VALUE(val) );
         break;    
     case T_STRING:
-        lua_pushlstring( L, RSTRING(val)->ptr, RSTRING(val)->len );
+        lua_pushlstring( L, RSTRING_PTR(val), RSTRING_LEN(val) );
         break;
     case T_SYMBOL:
         lua_pushstring( L, rb_id2name( SYM2ID(val) ) );
@@ -240,9 +240,9 @@ int marshal_ruby_to_lua_top( lua_State* L, VALUE val )
         long i;
         VALUE array = val;
         lua_newtable( L );
-        for ( i = 0; i < RARRAY(array)->len; i++ )
+        for ( i = 0; i < RARRAY_LEN(array); i++ )
         {
-            marshal_ruby_to_lua_top( L, RARRAY(array)->ptr[i] );
+            marshal_ruby_to_lua_top( L, RARRAY_PTR(array)[i] );
             lua_rawseti( L, -2, i+1 );    // Lua is 1-based
         }
         break;
@@ -347,13 +347,13 @@ VALUE rlua_method_missing_dispatch( lua_State* L, const char* key, VALUE Rstate,
     int err = lua_pcall( L, (pushself ? argc : argc-1), LUA_MULTRET, 0 );
     if ( err == LUA_ERRRUN ) {
         lua_remove( L, -2 );
-        rb_raise( rb_eRuntimeError, pop_error_to_buffer(L) );
+        rb_raise( rb_eRuntimeError, "%s", pop_error_to_buffer(L) );
     } else if ( err == LUA_ERRMEM ) {
         lua_remove( L, -2 );
-        rb_raise( rb_eNoMemError, pop_error_to_buffer(L) );
+        rb_raise( rb_eNoMemError, "%s", pop_error_to_buffer(L) );
     } else if ( err == LUA_ERRERR ) {
         lua_remove( L, -2 );
-        rb_raise( rb_eFatal, pop_error_to_buffer(L) );
+        rb_raise( rb_eFatal, "%s", pop_error_to_buffer(L) );
     }
 
     // if there is one result, return that alone
@@ -651,9 +651,9 @@ static VALUE rlua_State_loadlibs( VALUE self, VALUE libs )
     else if ( TYPE(libs) == T_ARRAY )
     {
         int i;
-        for ( i = 0; i < RARRAY(libs)->len; i++ )
+        for ( i = 0; i < RARRAY_LEN(libs); i++ )
         {
-            VALUE entry = RARRAY(libs)->ptr[i];
+            VALUE entry = RARRAY_PTR(libs)[i];
             if ( TYPE(entry) == T_SYMBOL )
             {
                 const char* libname = rb_id2name( SYM2ID(entry) );
@@ -684,11 +684,11 @@ static VALUE rlua_State_eval( VALUE self, VALUE str )
     lua_State* L = pRLState->getState();
     
     // process the string to a chunk
-    int err = luaL_loadbuffer( L, RSTRING(str)->ptr, RSTRING(str)->len, "Lua::State.eval" );
+    int err = luaL_loadbuffer( L, RSTRING_PTR(str), RSTRING_LEN(str), "Lua::State.eval" );
     if ( err == LUA_ERRMEM )
-        rb_raise( rb_eNoMemError, pop_error_to_buffer(L) );
+        rb_raise( rb_eNoMemError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRSYNTAX )
-        rb_raise( rb_eSyntaxError, pop_error_to_buffer(L) );
+        rb_raise( rb_eSyntaxError, "%s", pop_error_to_buffer(L) );
 
     // pcall the chunk, returning only a single argument
     // TODO: error handler with stack traceback
@@ -696,11 +696,11 @@ static VALUE rlua_State_eval( VALUE self, VALUE str )
     // TODO: hmmm... the err handler could even be in Ruby?
     err = lua_pcall( L, 0, 1, 0 );
     if ( err == LUA_ERRRUN )
-        rb_raise( rb_eRuntimeError, pop_error_to_buffer(L) );
+        rb_raise( rb_eRuntimeError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRMEM )
-        rb_raise( rb_eNoMemError, pop_error_to_buffer(L) );
+        rb_raise( rb_eNoMemError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRERR )
-        rb_raise( rb_eFatal, pop_error_to_buffer(L) );
+        rb_raise( rb_eFatal, "%s", pop_error_to_buffer(L) );
 
     // marshal the result to Ruby
     VALUE result = marshal_lua_to_ruby( self, L, -1 );
@@ -727,11 +727,11 @@ static VALUE rlua_State_eval_mult( VALUE self, VALUE str )
     int args_bottom = lua_gettop(L);
 
     // process the string to a chunk
-    int err = luaL_loadbuffer( L, RSTRING(str)->ptr, RSTRING(str)->len, "Lua::State.eval" );
+    int err = luaL_loadbuffer( L, RSTRING_PTR(str), RSTRING_LEN(str), "Lua::State.eval" );
     if ( err == LUA_ERRMEM )
-        rb_raise( rb_eNoMemError, pop_error_to_buffer(L) );
+        rb_raise( rb_eNoMemError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRSYNTAX )
-        rb_raise( rb_eSyntaxError, pop_error_to_buffer(L) );
+        rb_raise( rb_eSyntaxError, "%s", pop_error_to_buffer(L) );
 
     // pcall the chunk, returning only a single argument
     // TODO: error handler with stack traceback
@@ -739,11 +739,11 @@ static VALUE rlua_State_eval_mult( VALUE self, VALUE str )
     // TODO: hmmm... the err handler could even be in Ruby?
     err = lua_pcall( L, 0, LUA_MULTRET, 0 );
     if ( err == LUA_ERRRUN )
-        rb_raise( rb_eRuntimeError, pop_error_to_buffer(L) );
+        rb_raise( rb_eRuntimeError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRMEM )
-        rb_raise( rb_eNoMemError, pop_error_to_buffer(L) );
+        rb_raise( rb_eNoMemError, "%s", pop_error_to_buffer(L) );
     else if ( err == LUA_ERRERR )
-        rb_raise( rb_eFatal, pop_error_to_buffer(L) );
+        rb_raise( rb_eFatal, "%s", pop_error_to_buffer(L) );
 
     // marshal the result to Ruby
     int args_top = lua_gettop(L);
