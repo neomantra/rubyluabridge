@@ -1,0 +1,66 @@
+rubyluabridge (0.7.0-3) unstable; urgency=low
+
+  * Version Breaks+Replaces for the package renaming (Closes: #717294)
+  * Document presence of MIT-licensed code (Closes: #717175)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Sat, 20 Jul 2013 10:34:27 -0400
+
+rubyluabridge (0.7.0-2) unstable; urgency=low
+
+  * Acknowledge NMU, thanks to Scott Kitterman
+  * Patch Rakefile to work with newer rake version (Closes: #713148)
+  * Rename libluabridge-ruby and libluabridge-ruby1.8 to ruby-luabridge
+  * Build arch:all only when binary-indep called
+  * Build with hardening options
+  * Update to Standards-Version 3.9.4 (no changes)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Tue, 16 Jul 2013 19:30:48 -0400
+
+rubyluabridge (0.7.0-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Force build/extconf_ubuntu.sh to use ruby1.8 explicitly to fix FTBFS now
+    that ruby1.9.1 is default (Closes: #676076)
+  * Add g++-4.6 to build-depends since build system is hard coded to gcc 4.6
+    and needs g++ too
+
+ -- Scott Kitterman <scott@kitterman.com>  Tue, 10 Jul 2012 00:15:48 -0400
+
+rubyluabridge (0.7.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Update watch file and add repack script
+  * Bump standards version to 3.8.4 (no changes)
+  * Add dependency on libboost-dev
+  * Add missing ${misc:Depends}
+  * Update to Debian source format 3.0
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Sun, 13 Jun 2010 00:22:17 -0400
+
+rubyluabridge (0.6.0-4) unstable; urgency=low
+
+  * Update package section to ruby to comply with new archive layout.
+  * Bump standards version to 3.8.3 (no changes)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 27 Aug 2009 20:38:01 -0400
+
+rubyluabridge (0.6.0-3) unstable; urgency=medium
+
+  * Quit installing the shared library into /usr/lib/ruby/1.8/i486-linux
+    on non-x86 platforms
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Sat, 11 Oct 2008 10:24:54 -0400
+
+rubyluabridge (0.6.0-2) unstable; urgency=high
+
+  * Bump Standards-Version to 3.8.0 (no changes).
+  * Change Build-Depends: libgems-ruby1.8 to rubygems1.8 (Closes: #490316)
+    - Fixes FTBFS, set urgency to high
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 17 Jul 2008 21:32:25 -0400
+
+rubyluabridge (0.6.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #462033)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Thu, 14 Feb 2008 21:36:41 -0500

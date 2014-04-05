@@ -1,0 +1,4 @@
+# This is a false positive
+ruby-luabridge: hardening-no-fortify-functions
+# This is created by rdoc and packaged with the documentation; ignore
+ruby-luabridge: embedded-javascript-library usr/share/doc/ruby-luabridge/html/js/jquery.js
