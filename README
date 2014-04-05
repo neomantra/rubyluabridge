@@ -80,6 +80,7 @@ thread:: Lua::RefObject
 
 The following persons have contributed to RubyLuaBridge:
 * Evan Wies (evan a neomantra d net)
+* Roberto C. Sanchez (roberto at connexer d com)
 
 RubyLuaBridge is inspired by, but not derived from:
 * Lunatic Python [http://labix.org/lunatic-python]
