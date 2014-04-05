@@ -1,0 +1,7 @@
+diff -uNr rubyluabridge-0.7.0+hg20140327.orig/build/extconf_ubuntu.sh rubyluabridge-0.7.0+hg20140327/build/extconf_ubuntu.sh
+--- rubyluabridge-0.7.0+hg20140327.orig/build/extconf_ubuntu.sh	2014-03-27 21:08:00.000000000 -0400
++++ rubyluabridge-0.7.0+hg20140327/build/extconf_ubuntu.sh	2014-03-28 15:56:39.000749587 -0400
+@@ -1,2 +1,2 @@
+ #!/bin/bash
+-ruby extconf.rb --with-lua-include=/usr/include/lua5.1 --with-lualib=lua5.1 $@
++ruby1.9.1 extconf.rb --with-lua-include=/usr/include/lua5.1 --with-lualib=lua5.1 $@

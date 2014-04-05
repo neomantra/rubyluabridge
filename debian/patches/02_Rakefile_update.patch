@@ -1,0 +1,21 @@
+Description: Replaces references to to obsolete rdoc tasks
+Author: Roberto C. Sanchez <roberto@connexer.com>
+--- rubyluabridge.hg.orig/Rakefile
++++ rubyluabridge.hg/Rakefile
+@@ -1,5 +1,5 @@
+-require 'rdoc/task'
+-require 'rubygems/package_task'
++require 'rake/rdoctask'
++require 'rake/gempackagetask'
+ require 'rake/testtask'
+ require 'rake/clean'
+ require 'rubygems'
+@@ -63,7 +63,7 @@
+ 
+ # Adding a new GemPackageTask adds a task named `package`, which generates
+ # packages as gems, tarball and zip archives.
+-Gem::PackageTask.new(spec) do |pkg|
++Rake::GemPackageTask.new(spec) do |pkg|
+         pkg.need_zip = true
+         pkg.need_tar_gz = true
+ end

@@ -1,0 +1,47 @@
+Source: rubyluabridge
+Section: ruby
+Priority: optional
+Maintainer: Athena Capital Research <acr-debian@athenacr.com>
+Uploaders: Roberto C. Sanchez <roberto@connexer.com>
+Build-Depends: debhelper (>= 9), liblua5.1-0-dev, rake, ruby-dev, libboost-dev, gem2deb
+Standards-Version: 3.9.5
+Homepage: http://rubyluabridge.rubyforge.org
+Vcs-Browser: https://bitbucket.org/neomantra/rubyluabridge
+Vcs-Hg: https://bitbucket.org/neomantra/rubyluabridge
+
+Package: ruby-luabridge
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, liblua5.1-0
+Provides: libluabridge-ruby, libluabridge-ruby1.8
+Replaces: libluabridge-ruby (<< 0.7.0-2), libluabridge-ruby1.8 (<< 0.7.0-2)
+Breaks: libluabridge-ruby (<< 0.7.0-2), libluabridge-ruby1.8 (<< 0.7.0-2)
+Description: access Lua from Ruby
+ RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
+ extension that uses the actual Lua C library.
+ .
+ This package is built for Ruby 1.8.
+
+Package: libluabridge-ruby1.8
+Architecture: all
+Section: oldlibs
+Priority: extra
+Depends: ruby-luabridge, ${misc:Depends}
+Description: access Lua from Ruby (Ruby 1.8) - transitional package
+ RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
+ extension that uses the actual Lua C library.
+ .
+ This package is built for Ruby 1.8.
+ .
+ This is a dummy transitional package and can safely be removed.
+
+Package: libluabridge-ruby
+Architecture: all
+Section: oldlibs
+Priority: extra
+Depends: ruby-luabridge, ${misc:Depends}
+Description: access Lua from Ruby - transitional package
+ RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
+ extension that uses the actual Lua C library.
+ .
+ This is a dummy transitional package and can safely be removed.
+

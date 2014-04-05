@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+%:
+	dh $@ --with ruby
+
+override_dh_auto_configure:
+	dh_testdir
+	build/extconf_ubuntu.sh --vendor
+	rake
+
+override_dh_install:
+	dh_install --list-missing
+
+override_dh_clean:
+	dh_testdir
+	dh_auto_clean
+	rake clean
+	dh_clean

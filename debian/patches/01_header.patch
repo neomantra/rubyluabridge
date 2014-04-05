@@ -1,0 +1,12 @@
+diff -uNr rubyluabridge-0.7.0+hg20140327.orig/rubyluabridge.cpp rubyluabridge-0.7.0+hg20140327/rubyluabridge.cpp
+--- rubyluabridge-0.7.0+hg20140327.orig/rubyluabridge.cpp	2014-03-27 21:08:00.000000000 -0400
++++ rubyluabridge-0.7.0+hg20140327/rubyluabridge.cpp	2014-03-28 15:50:21.609658436 -0400
+@@ -36,7 +36,7 @@
+ #include <lauxlib.h>
+ }
+ #include "rubyluabridge.h"
+-#include "ruby/st.h"
++#include "st.h"
+ 
+ // Debug Scaffolding
+ #ifdef RLB_DEBUG
