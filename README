@@ -4,8 +4,7 @@ RubyLuaBridge lets you access Lua from Ruby.  Eventually, support for accessing 
 This documentation assumes basic knowledge of Ruby[http://www.ruby-lang.org] and Lua[http://www.lua.org].
 
 Relevant web pages:
-* {RubyLuaBridge Homepage}[http://rubyluabridge.rubyforge.org/]
-* {RubyForge Project}[http://rubyforge.org/projects/rubyluabridge/]
+* {BitBucket}[http://bitbucket.org/neomantra/rubyluabridge]
 
 == Installation
 
@@ -80,6 +79,7 @@ thread:: Lua::RefObject
 
 The following persons have contributed to RubyLuaBridge:
 * Evan Wies (evan a neomantra d net)
+* Roberto C. Sanchez (roberto at connexer d com)
 
 RubyLuaBridge is inspired by, but not derived from:
 * Lunatic Python [http://labix.org/lunatic-python]
@@ -121,9 +121,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 == Support
-
-* {RubyLuaBridge Homepage}[http://rubyluabridge.rubyforge.org/]
-* {RubyForge Project}[http://rubyforge.org/projects/rubyluabridge/]
 
 Download the latest sources from {BitBucket}[http://bitbucket.org/neomantra/rubyluabridge]
 

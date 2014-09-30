@@ -38,8 +38,8 @@
 #include <boost/shared_ptr.hpp>
 
 // Version Information
-#define RUBYLUABRIDGE_VERSION       ("0.7")
-#define RUBYLUABRIDGE_VERSION_NUM   (000700)
+#define RUBYLUABRIDGE_VERSION       ("0.8")
+#define RUBYLUABRIDGE_VERSION_NUM   (0x000800)
 
 
 // shared_ptr deleter which invokes lua_close
