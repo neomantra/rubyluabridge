@@ -19,29 +19,5 @@ Description: access Lua from Ruby
  RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
  extension that uses the actual Lua C library.
  .
- This package is built for Ruby 1.8.
-
-Package: libluabridge-ruby1.8
-Architecture: all
-Section: oldlibs
-Priority: extra
-Depends: ruby-luabridge, ${misc:Depends}
-Description: access Lua from Ruby (Ruby 1.8) - transitional package
- RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
- extension that uses the actual Lua C library.
- .
- This package is built for Ruby 1.8.
- .
- This is a dummy transitional package and can safely be removed.
-
-Package: libluabridge-ruby
-Architecture: all
-Section: oldlibs
-Priority: extra
-Depends: ruby-luabridge, ${misc:Depends}
-Description: access Lua from Ruby - transitional package
- RubyLuaBridge is a seamless bridge between Ruby and Lua.  It is a C
- extension that uses the actual Lua C library.
- .
- This is a dummy transitional package and can safely be removed.
+ This package is built for the default Ruby version.
 
