@@ -904,7 +904,7 @@ static VALUE rlua_RefObject_initialize( VALUE self, VALUE Rstate, VALUE RluaRef 
     rlua_RefObject* pRef;
     Data_Get_Struct( self, rlua_RefObject, pRef );
     
-    RLB_DEBUG_PRINT( "ref init:  self:%d   Rstate:%p  TYPE(Rstate):%d  RluaRef:%d TYPE(RluaRef):%d  luaRef:%d\n",
+    RLB_DEBUG_PRINT( "ref init:  self:%lu   Rstate:%lu  TYPE(Rstate):%lu  RluaRef:%lu TYPE(RluaRef):%lu  luaRef:%d\n",
         (unsigned long)self, (unsigned long)Rstate, (unsigned long)TYPE(Rstate),
         (unsigned long)RluaRef, (unsigned long)TYPE(RluaRef), NUM2INT(RluaRef) );
 
@@ -916,6 +916,14 @@ static VALUE rlua_RefObject_initialize( VALUE self, VALUE Rstate, VALUE RluaRef 
     pRef->Lstate  = pRState->Lstate;
 
     return self;
+}
+
+
+/// mark ourselves during Ruby's GC cycle
+/// mark our dependency on our parent Rstate to prevent it from being sweeped
+static void rlua_RefObject_mark( rlua_RefObject* pRefObject )
+{
+    rb_gc_mark( pRefObject->Rstate );
 }
 
 
@@ -936,15 +944,11 @@ static VALUE rlua_RefObject_alloc( VALUE klass )
     rlua_RefObject* pRef = new rlua_RefObject();
     if ( !pRef )
         rb_raise( rb_eNoMemError, "Out of memory when allocating rlua_RefObject" );
-//  pRef->Lstate = NULL;
-    pRef->Lref   = LUA_NOREF;
-    pRef->Rstate = Qnil;
 
-    // wrap it inside a Ruby object 
-    //rlua_RefObject_mark
-    VALUE obj = Data_Wrap_Struct( klass, NULL, rlua_RefObject_free, pRef ); 
+    // wrap it inside a Ruby object
+    VALUE obj = Data_Wrap_Struct( klass, rlua_RefObject_mark, rlua_RefObject_free, pRef );
     return obj; 
-} 
+}
 
 
 /* call-seq: 
@@ -1580,7 +1584,8 @@ void Init_rubyluabridge()
     rb_define_method( cLua_State, "callable?",      RUBY_METHOD_FUNC(rlua_State_is_callable), 0 );
     rb_define_method( cLua_State, "indexable?",     RUBY_METHOD_FUNC(rlua_State_is_indexable), 0 );
     rb_define_method( cLua_State, "new_indexable?", RUBY_METHOD_FUNC(rlua_State_is_new_indexable), 0 );
-// TODO: more methods!
+    rb_global_variable(&cLua_State);
+    rb_global_variable(&rb_cObject);
 
 //    rb_define_method( cLua_State, "execute",      lua_State_eval, 1 );
 //    rb_define_method( cLua_State, "execute_mult", lua_State_eval_mult, 1 ); 
@@ -1605,6 +1610,7 @@ void Init_rubyluabridge()
     rb_define_method( cLua_RefObject, "callable?",      RUBY_METHOD_FUNC(rlua_RefObject_is_callable), 0 );
     rb_define_method( cLua_RefObject, "indexable?",     RUBY_METHOD_FUNC(rlua_RefObject_is_indexable), 0 );
     rb_define_method( cLua_RefObject, "new_indexable?", RUBY_METHOD_FUNC(rlua_RefObject_is_new_indexable), 0 );
+    rb_global_variable(&cLua_RefObject);
 
     // Lua::Table class
     cLua_Table = rb_define_class_under( mLua, "Table", cLua_RefObject ); 
@@ -1618,6 +1624,7 @@ void Init_rubyluabridge()
     rb_define_method( cLua_Table, "each_value",  RUBY_METHOD_FUNC(rlua_Table_each_value), 0 ); 
     rb_define_alias(  cLua_Table, "each", "each_pair" );
     rb_define_alias(  cLua_Table, "each_index", "each_ikey" );
+    rb_global_variable(&cLua_Table);
 }
 
 } // extern "C"
