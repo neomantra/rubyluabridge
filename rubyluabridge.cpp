@@ -514,7 +514,7 @@ static VALUE rlua_State_initialize( int argc, VALUE* argv, VALUE self )
 /// free the lua_State, create with lua_State_alloc
 static void rlua_State_free( rlua_State* pRLState )
 {
-	RLB_DEBUG_PRINT( "state free  :  ptr:%p   L:%p\n", pRLState, pRLState->getState() );
+    RLB_DEBUG_PRINT( "state free  :  ptr:%p   L:%p\n", pRLState, pRLState->getState() );
 } 
 
 
@@ -854,7 +854,7 @@ VALUE rlua_State_new_table_at( VALUE self, VALUE key )
  */
 VALUE rlua_State_is_indexable( VALUE self )
 {
-	return Qtrue;
+    return Qtrue;
 }
 
 
@@ -866,7 +866,7 @@ VALUE rlua_State_is_indexable( VALUE self )
  */
 VALUE rlua_State_is_new_indexable( VALUE self )
 {
-	return Qtrue;
+    return Qtrue;
 }
 
 
@@ -878,7 +878,7 @@ VALUE rlua_State_is_new_indexable( VALUE self )
  */
 VALUE rlua_State_is_callable( VALUE self )
 {
-	return Qfalse;
+    return Qfalse;
 }
 
 
@@ -930,7 +930,7 @@ static void rlua_RefObject_mark( rlua_RefObject* pRefObject )
 /// free the Lua::RefObject, created with lua_RefObject_alloc
 static void rlua_RefObject_free( rlua_RefObject* pRefObject )
 {
-	RLB_DEBUG_PRINT( "ref free:  ptr:%p   ref:%d  L:%p\n", pRefObject, pRefObject->Lref, pRefObject->getState() );
+    RLB_DEBUG_PRINT( "ref free:  ptr:%p   ref:%d  L:%p\n", pRefObject, pRefObject->Lref, pRefObject->getState() );
     assert( pRefObject != NULL );
     luaL_unref( pRefObject->getState(), LUA_REGISTRYINDEX, pRefObject->Lref );
     
