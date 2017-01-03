@@ -1,3 +1,10 @@
+rubyluabridge (0.8.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Re-introduce package after removal from testing/unstable (Closes: #762191)
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Mon, 29 Sep 2014 22:43:22 -0400
+
 rubyluabridge (0.7.0-3) unstable; urgency=low
 
   * Version Breaks+Replaces for the package renaming (Closes: #717294)

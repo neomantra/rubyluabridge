@@ -42,7 +42,7 @@ end
 # together into gem archives. You can also use it to generate tarball
 # and zip archives.
 PROJECT_NAME    = "rubyluabridge"
-PKG_VERSION     = "0.7.0" #Lua::BRIDGE_VERSION
+PKG_VERSION     = "0.8.0" #Lua::BRIDGE_VERSION
 PKG_FILES       = FileList['[A-Z]*', 'test/**/*'].to_a
 
 spec = Gem::Specification.new do |s|
