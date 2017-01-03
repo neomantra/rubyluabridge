@@ -1,3 +1,9 @@
+rubyluabridge (0.8.0+hg20170103-1) UNRELEASED; urgency=medium
+
+  * Built from mercurial snapshot.
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Tue, 03 Jan 2017 13:56:11 -0500
+
 rubyluabridge (0.8.0-1) unstable; urgency=low
 
   * New upstream release
