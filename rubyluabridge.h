@@ -70,6 +70,11 @@ struct rlua_State
 /// We follow the convention of using Lua's registry to store the references.
 struct rlua_RefObject
 {
+    rlua_RefObject()
+        : Lref(LUA_NOREF)
+        , Rstate(Qnil)
+    {}
+
     lua_State* getState() { return Lstate.get(); }
 
     boost::shared_ptr<lua_State> Lstate; /// The lua_State where the reference is held.
