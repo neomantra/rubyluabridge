@@ -1,3 +1,9 @@
+rubyluabridge (0.8.0-2) UNRELEASED; urgency=medium
+
+  * Update Vcs-* URLs to point to 'debian' branch
+
+ -- Roberto C. Sanchez <roberto@connexer.com>  Mon, 26 Aug 2019 09:10:03 -0400
+
 rubyluabridge (0.8.0-1) unstable; urgency=low
 
   * New upstream release
