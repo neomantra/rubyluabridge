@@ -1,0 +1,2 @@
+# lintian gets confused with the https:// URI in the Vcs-Hg field
+rubyluabridge source: vcs-field-mismatch
