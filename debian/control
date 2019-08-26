@@ -5,7 +5,6 @@ Maintainer: Athena Capital Research <acr-debian@athenacr.com>
 Uploaders: Roberto C. Sanchez <roberto@connexer.com>
 Build-Depends: debhelper (>= 9), liblua5.1-0-dev, rake, ruby-dev, libboost-dev, gem2deb
 Standards-Version: 3.9.5
-Homepage: http://rubyluabridge.rubyforge.org
 Vcs-Browser: https://bitbucket.org/neomantra/rubyluabridge/src/debian/
 Vcs-Hg: https://bitbucket.org/neomantra/rubyluabridge/src/debian/
 
