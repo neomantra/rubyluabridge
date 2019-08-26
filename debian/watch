@@ -1,2 +1,1 @@
-version=3
-http://rubyforge.org/frs/?group_id=3393 .*/rubyluabridge-(\d[\d_.]+)\.(?:tar(?:\.gz|\.bz2)?|tgz|zip) debian debian/repack.sh
+# Upstream formerly made releases to RubyForge, but the service is now defunct
